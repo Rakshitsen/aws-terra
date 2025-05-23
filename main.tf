@@ -93,7 +93,6 @@ resource "aws_security_group" "SG-K8s-Master" {
 }
 
 resource "aws_instance" "K8s_master" {
-  count         = 1
   ami           = var.K8s_ami_id
   instance_type = var.K8s_instance_type
   key_name      = aws_key_pair.my_key.key_name
@@ -119,7 +118,6 @@ resource "aws_instance" "K8s_slave" {
 }
 
 resource "aws_instance" "Jenkins_master" {
-  count         = 1
   ami           = var.Jenkins_ami_id
   instance_type = var.Jenkins_instance_type
   key_name      = aws_key_pair.my_key.key_name
