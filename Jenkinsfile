@@ -1,37 +1,61 @@
-pipeline {
+pipeline{
     agent any
+    
     parameters {
-        booleanParam(name: 'confirm', defaultValue: false, description: 'Confirm to apply Terraform changes')
+        booleanParams(name: 'Plan_Infrastructure', defaultValue: false, description: 'Check the Planning of Infra')
+        booleanParams(name: 'Apply_Infrastructure', defaultValue: false, description: 'Check the Applying of Infra')
+        booleanParams(name: 'Destroy_Infrastructure', defaultValue: false, description: 'Check the Destroying of Infra')
     }
+    
     stages {
-        stage('cloning the repo') {
+        stage('Cloning the repository') {
             steps {
-                echo "Cloning the repo"
-                git branch: 'main', url: 'https://github.com/Rakshitsen/aws-terra.git'
+                git 'https://github.com/Rakshitsen/aws-terra.git'
             }
         }
-        stage('terraform init and validate') {
+        stage('Terraform Init') {
             steps {
-                withAWS(credentials: 'aws-jenkins-creds', region: 'us-east-2'){
-                    echo "Initializing and validating Terraform"
-                    sh 'terraform init'
-                    sh 'terraform validate'
+                 withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws-jenkins-creds', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                        sh 'echo =============================Terraform Init==================================='
+                        sh 'terraform init'
+            }
+            
+            }
+        }
+        stage('Terraform Plan') {
+            steps {
+                script {
+                    if (params.Plan_Infrastructure) {
+                        withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws-jenkins-creds', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                            sh 'echo =============================Terraform Plan==================================='
+                            sh 'terraform plan'
+                        } 
+                    }
                 }
             }
         }
-        stage('terraform plan') {
+        stage('Terraform Apply') {
             steps {
-                echo "Generating Terraform plan"
-                echo 'terraform plan'
+                script {
+                    if (paras.Apply_Infrastructure) {
+                        withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws-jenkins-creds', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                            sh 'echo =============================Terraform Apply==================================='
+                            sh 'terraform apply'
+                        } 
+                    }
+                }
             }
         }
-        stage('terraform apply') {
-            when {
-                expression { params.confirm == true }
-            }
+        stage('Terraform Destroy') {
             steps {
-                echo "Applying Terraform changes"
-                echo 'terraform apply -auto-approve'
+                script {
+                    if (params.Destroy_Infrastructure) {
+                        withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws-jenkins-creds', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                            sh 'echo =============================Terraform destroy==================================='
+                            sh 'terraform destroy'
+                        } 
+                    }
+                }
             }
         }
     }
