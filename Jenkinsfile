@@ -12,7 +12,7 @@ pipeline {
         }
         stage('terraform init and validate') {
             steps {
-                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws-jenkins-creds', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                withAWS(credentials: 'aws-jenkins-creds', region: 'us-east-2'){
                     echo "Initializing and validating Terraform"
                     sh 'terraform init'
                     sh 'terraform validate'
