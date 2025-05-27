@@ -1,32 +1,35 @@
-pipeline{
+pipeline {
     agent any
     parameters {
-     booleanParam(name: 'confirm', defaultValue: false, description: 'Confirm to apply Terraform changes')
+        booleanParam(name: 'confirm', defaultValue: false, description: 'Confirm to apply Terraform changes')
     }
     stages {
-        stage('cloning the repo'){
-            steps{
+        stage('cloning the repo') {
+            steps {
                 echo "Cloning the repo"
+                git branch: 'main', url: 'https://github.com/Rakshitsen/aws-terra.git'
             }
         }
-        stage('terraform init and validate'){
-            steps{
-                echo "Initializing and validating Terraform"
-                echo 'terraform init'
-                echo 'terraform validate'
+        stage('terraform init and validate') {
+            steps {
+                withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws-jenkins-creds', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    echo "Initializing and validating Terraform"
+                    echo 'terraform init'
+                    echo 'terraform validate'
+                }
             }
         }
-        stage('terraform plan'){
-            steps{
+        stage('terraform plan') {
+            steps {
                 echo "Generating Terraform plan"
                 echo 'terraform plan'
             }
         }
-        stage('terraform apply'){
+        stage('terraform apply') {
             when {
                 expression { params.confirm == true }
             }
-            steps{
+            steps {
                 echo "Applying Terraform changes"
                 echo 'terraform apply -auto-approve'
             }
